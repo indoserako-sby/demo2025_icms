@@ -1,0 +1,266 @@
+<?php
+
+namespace App\Livewire;
+
+use App\Models\Asset;
+use App\Models\DataAlarm;
+use App\Models\ListData;
+use App\Models\Area;
+use App\Models\Group;
+use App\Exports\RecentAlarmsExport;
+use Carbon\Carbon;
+use Livewire\Component;
+use Livewire\WithPagination;
+use Maatwebsite\Excel\Facades\Excel;
+
+class RecentAlertTable extends Component
+{
+    use WithPagination;
+
+    protected $paginationTheme = 'bootstrap';
+
+    public $area = '';
+    public $group = '';
+    public $asset = '';
+    public $parameter = '';
+    public $alertType = '';
+    public $dateRange = '';
+    public $startDate;
+    public $endDate;
+
+    protected $queryString = [
+        'area' => ['except' => ''],
+        'group' => ['except' => ''],
+        'asset' => ['except' => ''],
+        'parameter' => ['except' => ''],
+        'alertType' => ['except' => ''],
+        'dateRange' => ['except' => '']
+    ];
+
+    protected $listeners = [
+        'alarmAcknowledged' => '$refresh'
+    ];
+
+    public function mount()
+    {
+        $this->startDate = Carbon::now()->subDays(30)->format('Y-m-d');
+        $this->endDate = Carbon::now()->format('Y-m-d');
+        $this->dateRange = $this->startDate . ' to ' . $this->endDate;
+    }
+
+    public function updatedDateRange($value)
+    {
+        if ($value) {
+            $dates = explode(' to ', $value);
+            $this->startDate = $dates[0];
+            $this->endDate = $dates[1] ?? $dates[0];
+        }
+        $this->dispatch('filterChanged');
+    }
+
+    public function updatedArea()
+    {
+        $this->dispatch('filterChanged');
+    }
+
+    public function updatedGroup()
+    {
+        $this->dispatch('filterChanged');
+    }
+
+    public function updatedAsset()
+    {
+        $this->dispatch('filterChanged');
+    }
+
+    public function updatedParameter()
+    {
+        $this->dispatch('filterChanged');
+    }
+
+    public function updatedAlertType()
+    {
+        $this->dispatch('filterChanged');
+    }
+
+    public function openAcknowledgeModal($alarmId)
+    {
+        $this->dispatch('openAcknowledgeModal', alarmId: $alarmId);
+    }
+
+    protected function formatParameterName($listData)
+    {
+        $machineParamName = $listData->machineParameter->name ?? '';
+        $positionName = $listData->position->name ?? '';
+        $datvarName = $listData->datvar->name ?? '';
+
+        // Remove empty values and N/A
+        $parts = array_filter([
+            $machineParamName,
+            $positionName,
+            $datvarName
+        ], function ($value) {
+            return $value && $value !== 'N/A';
+        });
+
+        // Jika machineParamName dan positionName sama (case insensitive), return datvarName
+        if (
+            $machineParamName && $positionName &&
+            strtoupper($machineParamName) === strtoupper($positionName)
+        ) {
+            return $datvarName ?: 'N/A';
+        } else {
+
+            // Gabungkan semua bagian yang ada
+            return implode(' - ', $parts) ?: 'N/A';
+        }
+    }
+
+
+    public function render()
+    {
+        // Query alerts with filters
+        $query = DataAlarm::query()
+            ->with(['listData.asset.group.area', 'listData.machineParameter', 'listData.position', 'listData.datvar'])
+            ->when($this->area, function ($query) {
+                $query->whereHas('listData.asset.group.area', function ($q) {
+                    $q->where('name', $this->area);
+                });
+            })
+            ->when($this->group, function ($query) {
+                $query->whereHas('listData.asset.group', function ($q) {
+                    $q->where('name', $this->group);
+                });
+            })
+            ->when($this->asset, function ($query) {
+                $query->whereHas('listData.asset', function ($q) {
+                    $q->where('name', $this->asset);
+                });
+            })
+            ->when($this->parameter, function ($query) {
+                $query->whereHas('listData', function ($q) {
+                    $q->where('id', $this->parameter);
+                });
+            })
+            ->when($this->alertType, function ($query) {
+                $query->where('alert_type', $this->alertType);
+            })
+            ->when($this->dateRange, function ($query) {
+                if ($this->startDate && $this->endDate) {
+                    $query->whereBetween('start_time', [
+                        Carbon::parse($this->startDate)->startOfDay(),
+                        Carbon::parse($this->endDate)->endOfDay()
+                    ]);
+                }
+            })
+            ->where('acknowledged', false)
+
+            ->orderBy('start_time', 'desc');
+
+        $alerts = $query->paginate(10);
+
+        // Area: from master Area
+        $areas = Area::orderBy('name')->pluck('name');
+        // Group: filtered by area
+        $groups = $this->area
+            ? Group::whereHas('area', function ($q) {
+                $q->where('name', $this->area);
+            })->orderBy('name')->pluck('name')
+            : Group::orderBy('name')->pluck('name');
+        // Asset: filtered by group/area (kedua filter aktif bersamaan)
+        $assetQuery = Asset::query();
+        if ($this->area) {
+            $assetQuery->whereHas('group.area', function ($q) {
+                $q->where('name', $this->area);
+            });
+        }
+        if ($this->group) {
+            $assetQuery->whereHas('group', function ($q) {
+                $q->where('name', $this->group);
+            });
+        }
+        $assets = $assetQuery->orderBy('name')->pluck('name');
+        // Parameter: filtered by asset/group/area (semua filter aktif bersamaan)
+        $paramQuery = ListData::with(['machineParameter', 'position', 'datvar']);
+        if ($this->area) {
+            $paramQuery->whereHas('asset.group.area', function ($q) {
+                $q->where('name', $this->area);
+            });
+        }
+        if ($this->group) {
+            $paramQuery->whereHas('asset.group', function ($q) {
+                $q->where('name', $this->group);
+            });
+        }
+        if ($this->asset) {
+            $paramQuery->whereHas('asset', function ($q) {
+                $q->where('name', $this->asset);
+            });
+        }
+        $parameters = $paramQuery->get()->map(function ($item) {
+            $name = collect([
+                $item->machineParameter->name ?? null,
+                $item->position->name ?? null,
+                $item->datvar->name ?? null,
+            ])->filter()->unique()->implode(' - ');
+            return [
+                'id' => $item->id,
+                'name' => $name,
+            ];
+        })->unique('name')->values();
+        // Alert types: filtered by current filter
+        $alertTypes = DataAlarm::query()
+            ->when($this->area, function ($query) {
+                $query->whereHas('listData.asset.group.area', function ($q) {
+                    $q->where('name', $this->area);
+                });
+            })
+            ->when($this->group, function ($query) {
+                $query->whereHas('listData.asset.group', function ($q) {
+                    $q->where('name', $this->group);
+                });
+            })
+            ->when($this->asset, function ($query) {
+                $query->whereHas('listData.asset', function ($q) {
+                    $q->where('name', $this->asset);
+                });
+            })
+            ->distinct()
+            ->pluck('alert_type');
+
+        return view('livewire.recent-alert-table', [
+            'alerts' => $alerts,
+            'areas' => $areas,
+            'groups' => $groups,
+            'assets' => $assets,
+            'parameters' => $parameters,
+            'alertTypes' => $alertTypes,
+        ]);
+    }
+
+    public function resetFilters()
+    {
+        $this->reset(['area', 'group', 'asset', 'parameter', 'alertType']);
+        $this->startDate = Carbon::now()->subDays(30)->format('Y-m-d');
+        $this->endDate = Carbon::now()->format('Y-m-d');
+        $this->dateRange = $this->startDate . ' to ' . $this->endDate;
+    }
+
+    public function exportToExcel()
+    {
+        $fileName = 'recent_alerts_' . now()->format('Y-m-d_His') . '.xlsx';
+
+        return Excel::download(
+            new RecentAlarmsExport(
+                $this->area,
+                $this->group,
+                $this->asset,
+                $this->parameter,
+                $this->alertType,
+                $this->startDate,
+                $this->endDate
+            ),
+            $fileName
+        );
+    }
+}
