@@ -207,8 +207,8 @@
 
         </div>
     </div>
+    @livewire('parameter-limit-modal')
 @endsection
-@livewire('parameter-limit-modal')
 
 @push('script')
     <script>

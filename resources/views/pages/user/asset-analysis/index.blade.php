@@ -98,7 +98,7 @@
             transition: width 0.3s ease;
         }
     </style>
-    // ...existing code...
+
 @endpush
 @section('content')
     <div class="row">
