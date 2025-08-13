@@ -26,6 +26,28 @@ docker-compose up -d --build
 docker-compose ps
 ```
 
+### Mengatasi Masalah Build
+
+Jika Anda mengalami masalah saat build terkait dependensi PHP:
+
+```bash
+# Jika terjadi error composer karena versi PHP atau ekstensi
+# Masuk ke container aplikasi
+docker-compose exec app bash
+
+# Update composer dengan mengabaikan persyaratan platform
+composer update --ignore-platform-reqs --no-interaction
+
+# Atau gunakan skrip yang telah didefinisikan
+composer run-script docker-build
+
+# Keluar dari container
+exit
+
+# Rebuild container
+docker-compose up -d --build
+```
+
 ### 3. Setup Aplikasi Laravel
 
 ```bash

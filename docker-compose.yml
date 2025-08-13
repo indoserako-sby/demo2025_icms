@@ -11,6 +11,7 @@ services:
     volumes:
       - ./:/var/www/html
       - ./storage:/var/www/html/storage
+      - composer-cache:/root/.composer/cache
     depends_on:
       - db
       - redis
@@ -23,10 +24,11 @@ services:
       - DB_PORT=${DB_PORT}
       - DB_DATABASE=${DB_DATABASE}
       - DB_USERNAME=${DB_USERNAME}
-      - DB_PASSWORD=${DB_PASSWORD}
+      - DB_PASSWORD=db=4ever
       - REDIS_HOST=redis
       - REDIS_PASSWORD=${REDIS_PASSWORD}
       - REDIS_PORT=${REDIS_PORT}
+      - COMPOSER_ALLOW_SUPERUSER=1
     networks:
       - ism-network
 
@@ -84,3 +86,4 @@ networks:
 volumes:
   postgres-data:
   redis-data:
+  composer-cache:
