@@ -1,89 +1,56 @@
-version: '3.8'
-
 services:
-  # PHP Application with Laravel
-  app:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    container_name: ism-app
-    restart: unless-stopped
-    volumes:
-      - ./:/var/www/html
-      - ./storage:/var/www/html/storage
-      - composer-cache:/root/.composer/cache
-    depends_on:
-      - db
-      - redis
-    environment:
-      - APP_ENV=${APP_ENV}
-      - APP_DEBUG=${APP_DEBUG}
-      - APP_URL=${APP_URL}
-      - DB_CONNECTION=${DB_CONNECTION}
-      - DB_HOST=db
-      - DB_PORT=${DB_PORT}
-      - DB_DATABASE=${DB_DATABASE}
-      - DB_USERNAME=${DB_USERNAME}
-      - DB_PASSWORD=db=4ever
-      - REDIS_HOST=redis
-      - REDIS_PASSWORD=${REDIS_PASSWORD}
-      - REDIS_PORT=${REDIS_PORT}
-      - COMPOSER_ALLOW_SUPERUSER=1
-    networks:
-      - ism-network
-
-  # Nginx Service
-  webserver:
-    image: nginx:alpine
-    container_name: ism-webserver
-    restart: unless-stopped
-    ports:
-      - "8002:80"
-    volumes:
-      - ./:/var/www/html
-      - ./docker/nginx/conf.d/:/etc/nginx/conf.d/
-    depends_on:
-      - app
-    networks:
-      - ism-network
-
-  # PostgreSQL Service
-  db:
-    image: postgres:15
-    container_name: ism-db
-    restart: unless-stopped
-    environment:
-      - POSTGRES_USER=${DB_USERNAME}
-      - POSTGRES_PASSWORD=db=4ever
-      - POSTGRES_DB=${DB_DATABASE}
-      - POSTGRES_HOST_AUTH_METHOD=md5
-    ports:
-      - "5432:5432"
-    volumes:
-      - postgres-data:/var/lib/postgresql/data
-      - ./docker/postgres/postgresql.conf:/etc/postgresql/postgresql.conf
-      - ./docker/postgres/pg_hba.conf:/etc/postgresql/pg_hba.conf
-    command: postgres -c config_file=/etc/postgresql/postgresql.conf
-    networks:
-      - ism-network
-
-  # Redis Service
-  redis:
-    image: redis:alpine
-    container_name: ism-redis
-    restart: unless-stopped
-    ports:
-      - "${REDIS_PORT}:6379"
-    volumes:
-      - redis-data:/data
-    networks:
-      - ism-network
-
+    laravel.test:
+        build:
+            context: './vendor/laravel/sail/runtimes/8.4'
+            dockerfile: Dockerfile
+            args:
+                WWWGROUP: '${WWWGROUP}'
+        image: 'sail-8.4/app'
+        extra_hosts:
+            - 'host.docker.internal:host-gateway'
+        ports:
+            - '${APP_PORT:-80}:80'
+            - '${VITE_PORT:-5173}:${VITE_PORT:-5173}'
+        environment:
+            WWWUSER: '${WWWUSER}'
+            LARAVEL_SAIL: 1
+            XDEBUG_MODE: '${SAIL_XDEBUG_MODE:-off}'
+            XDEBUG_CONFIG: '${SAIL_XDEBUG_CONFIG:-client_host=host.docker.internal}'
+            IGNITION_LOCAL_SITES_PATH: '${PWD}'
+        volumes:
+            - '.:/var/www/html'
+        networks:
+            - sail
+        depends_on:
+            - pgsql
+    pgsql:
+        image: 'postgres:17'
+        ports:
+            - '${FORWARD_DB_PORT:-5432}:5432'
+        environment:
+            PGPASSWORD: '${DB_PASSWORD:-secret}'
+            POSTGRES_DB: '${DB_DATABASE}'
+            POSTGRES_USER: '${DB_USERNAME}'
+            POSTGRES_PASSWORD: '${DB_PASSWORD:-secret}'
+        volumes:
+            - 'sail-pgsql:/var/lib/postgresql/data'
+            - './vendor/laravel/sail/database/pgsql/create-testing-database.sql:/docker-entrypoint-initdb.d/10-create-testing-database.sql'
+        networks:
+            - sail
+        healthcheck:
+            test:
+                - CMD
+                - pg_isready
+                - '-q'
+                - '-d'
+                - '${DB_DATABASE}'
+                - '-U'
+                - '${DB_USERNAME}'
+            retries: 3
+            timeout: 5s
 networks:
-  ism-network:
-    driver: bridge
-
+    sail:
+        driver: bridge
 volumes:
-  postgres-data:
-  redis-data:
-  composer-cache:
+    sail-pgsql:
+        driver: local

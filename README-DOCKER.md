@@ -16,6 +16,8 @@ Jika Anda menggunakan Docker untuk pertama kali dengan aplikasi ini, ikuti langk
 cp .env.docker .env
 ```
 
+**PENTING:** Pastikan file `.env` sudah ada sebelum membangun image Docker. File ini diperlukan untuk proses build yang sukses.
+
 ### 2. Membangun dan Menjalankan Container
 
 ```bash
@@ -28,7 +30,39 @@ docker-compose ps
 
 ### Mengatasi Masalah Build
 
-Jika Anda mengalami masalah saat build terkait dependensi PHP:
+#### Masalah dengan .env tidak ditemukan
+
+Jika terjadi error "Failed to open stream: No such file or directory" saat generate key:
+
+```bash
+# Pastikan file .env.docker tersedia di root project
+ls -la .env.docker
+
+# Salin manual file .env.docker menjadi .env
+cp .env.docker .env
+
+# Jalankan container dengan volume yang sudah diupdate
+docker-compose down
+docker-compose up -d --build
+```
+
+Atau jalankan perintah berikut untuk men-setup .env secara manual di dalam container:
+
+```bash
+# Masuk ke container
+docker-compose exec app bash
+
+# Salin .env.docker ke .env
+cp .env.docker .env
+
+# Generate key secara manual
+php artisan key:generate --ansi
+
+# Keluar dari container
+exit
+```
+
+#### Masalah dengan Dependensi PHP
 
 ```bash
 # Jika terjadi error composer karena versi PHP atau ekstensi
