@@ -52,12 +52,16 @@ services:
     restart: unless-stopped
     environment:
       - POSTGRES_USER=${DB_USERNAME}
-      - POSTGRES_PASSWORD=${DB_PASSWORD}
+      - POSTGRES_PASSWORD=db=4ever
       - POSTGRES_DB=${DB_DATABASE}
+      - POSTGRES_HOST_AUTH_METHOD=md5
     ports:
-      - "${DB_PORT}:5432"
+      - "5432:5432"
     volumes:
       - postgres-data:/var/lib/postgresql/data
+      - ./docker/postgres/postgresql.conf:/etc/postgresql/postgresql.conf
+      - ./docker/postgres/pg_hba.conf:/etc/postgresql/pg_hba.conf
+    command: postgres -c config_file=/etc/postgresql/postgresql.conf
     networks:
       - ism-network
 

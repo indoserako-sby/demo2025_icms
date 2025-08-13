@@ -105,3 +105,31 @@ docker-compose logs webserver
 - Web: 8002 (`http://localhost:8002`)
 - PostgreSQL: 5432
 - Redis: 6379
+
+## Akses Remote Database PostgreSQL
+
+Database PostgreSQL telah dikonfigurasi untuk dapat diakses dari jarak jauh dengan detail berikut:
+
+- **Host**: Alamat IP server Anda
+- **Port**: 5432
+- **Database**: bogasaridata
+- **Username**: postgres
+- **Password**: db=4ever
+- **Connection Type**: PostgreSQL
+
+Untuk mengakses database dari luar container:
+
+1. Menggunakan pgAdmin atau DBeaver:
+   - Tambahkan koneksi baru dengan detail di atas
+   - Pastikan port 5432 terbuka di firewall jika berjalan pada server
+
+2. Menggunakan command line:
+
+   ```bash
+   psql -h <alamat_ip_server> -p 5432 -U postgres -d bogasaridata
+   ```
+
+3. Jika menjalankan di lingkungan produksi, disarankan untuk:
+   - Membatasi akses ke port 5432 hanya dari IP yang dipercaya
+   - Menggunakan SSL untuk enkripsi komunikasi
+   - Melakukan backup database secara berkala
