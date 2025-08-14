@@ -48,6 +48,12 @@ services:
                 - '${DB_USERNAME}'
             retries: 3
             timeout: 5s
+    node:
+        image: node:20
+        working_dir: /var/www/html
+        volumes:
+        - ".:/var/www/html"
+        entrypoint: ["tail", "-f", "/dev/null"]
 networks:
     sail:
         driver: bridge
