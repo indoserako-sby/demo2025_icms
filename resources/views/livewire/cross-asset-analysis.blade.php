@@ -51,35 +51,92 @@
             display: none !important;
         }
 
-        .sidebar-collapsed {
-            overflow: hidden;
-        }
-
-        .sidebar-collapsed .card {
-            display: none;
-        }
-
-        .sidebar-collapsed-toggle {
+        /* Asset Panel Customizer Style */
+        .asset-panel {
             position: fixed;
-            /* Fixed positioning so it doesn't move on scroll */
-            top: 90px;
-            /* Match the position of the card */
-            left: 0;
-            /* Align to the left edge */
-            z-index: 100;
-            height: auto;
-            display: flex;
-            justify-content: flex-start;
-            padding: 15px 0;
-            margin-left: 0;
+            top: 0;
+            right: -400px;
+            width: 400px;
+            height: 100vh;
+            background: #fff;
+            border-left: 1px solid #e0e0e0;
+            box-shadow: -2px 0 10px rgba(0, 0, 0, 0.1);
+            z-index: 1100;
+            transition: right 0.3s ease;
+            overflow-y: auto;
         }
 
-        /* Add specific styling for the expand button in collapsed mode */
-        .sidebar-collapsed-toggle .btn {
-            margin-left: 0;
-            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
-            width: 42px;
-            height: 42px;
+        .asset-panel.active {
+            right: 0;
+        }
+
+        .asset-panel-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid #e0e0e0;
+            background: #f8f9fa;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .asset-panel-body {
+            padding: 1.5rem;
+        }
+
+        .panel-toggle-btn {
+            position: fixed;
+            top: 50%;
+            right: 20px;
+            transform: translateY(-50%);
+            z-index: 1060;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            border: none;
+            background: #696cff;
+            color: white;
+            transition: all 0.3s ease;
+        }
+
+        .panel-toggle-btn:hover {
+            background: #5f61e6;
+            transform: translateY(-50%) scale(1.1);
+        }
+
+        .panel-backdrop {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1040;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .panel-backdrop.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        /* Mobile responsive */
+        @media (max-width: 768px) {
+            .asset-panel {
+                width: 100%;
+                right: -100%;
+            }
+
+            .panel-toggle-btn {
+                right: 15px;
+                width: 45px;
+                height: 45px;
+            }
         }
 
         .transition-width {
@@ -87,35 +144,32 @@
         }
     </style>
 
-    <div class="row">
-        <!-- Left Column - Selection Panel with Tree Structure -->
-        <div id="cross-asset-sidebar" class="col-md-3 transition-width">
-            <!-- Toggle button for collapsed state -->
-            <div class="sidebar-collapsed-toggle d-none">
-                <button id="expand-cross-sidebar" class="btn btn-primary" title="Show Asset Panel">
-                    <i class="ti ti-chevron-right"></i>
+    {{-- panel toggle  --}}
+    <button class="panel-toggle-btn" id="panel-toggle" title="Asset Panel">
+        <i class="ti ti-device-desktop"></i>
+    </button>
+
+    <!-- Panel Backdrop -->
+    <div class="panel-backdrop" id="panel-backdrop"></div>
+
+    <!-- Asset Panel (Customizer Style) -->
+    <div class="asset-panel" id="asset-panel">
+        <div class="asset-panel-header">
+            <div class="d-flex justify-content-between align-items-center">
+                <h5 class="mb-0 fw-bold">Cross Asset Selection</h5>
+                <button class="btn btn-sm btn-icon btn-outline-secondary" id="panel-close">
+                    <i class="ti ti-x"></i>
                 </button>
             </div>
-
-            <div class="card">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center mb-3">
-                        <h5 class="mb-0">Cross Asset Analysis</h5>
-                        <!-- Add toggle button inside the card -->
-                        <button id="collapse-cross-sidebar" class="btn btn-primary" title="Hide Asset Panel">
-                            <i class="ti ti-chevron-left"></i>
-                        </button>
-                    </div>
-
-                    <!-- Tree Structure for Selection -->
-                    {{-- <livewire:simple-tree-panel /> --}}
-                    <livewire:selection-tree-panel :selected-parameters="$selectedParameters" />
-                </div>
-            </div>
         </div>
+        <div class="asset-panel-body">
+            <livewire:selection-tree-panel :selected-parameters="$selectedParameters" />
+        </div>
+    </div>
 
-        <!-- Right Column - Chart Display -->
-        <div id="cross-asset-content" class="col-md-9">
+    <div class="row">
+        <!-- Chart Display -->
+        <div id="cross-asset-content" class="col-md-12">
             <div class="card">
                 <div class="card-body">
                     <div class="d-flex align-items-center justify-content-between mb-3">
@@ -165,27 +219,35 @@
                 // Define isRtl variable based on document direction
                 let isRtl = document.querySelector('html').getAttribute('dir') === 'rtl';
 
-                // Toggle sidebar functionality
-                const assetSidebar = document.getElementById('cross-asset-sidebar');
+                // Panel elements
+                const panelToggle = document.getElementById('panel-toggle');
+                const panelClose = document.getElementById('panel-close');
+                const assetPanel = document.getElementById('asset-panel');
+                const panelBackdrop = document.getElementById('panel-backdrop');
                 const assetContent = document.getElementById('cross-asset-content');
-                const collapseSidebarBtn = document.getElementById('collapse-cross-sidebar');
-                const expandSidebarBtn = document.getElementById('expand-cross-sidebar');
-                const collapsedToggle = assetSidebar.querySelector('.sidebar-collapsed-toggle');
-                let sidebarVisible = true;
 
-                // Collapse sidebar function
-                collapseSidebarBtn.addEventListener('click', function() {
-                    // Collapse sidebar
-                    assetSidebar.classList.add('sidebar-collapsed');
-                    assetSidebar.classList.remove('col-md-3');
-                    assetSidebar.classList.add('col-md-1');
-                    collapsedToggle.classList.remove('d-none');
+                // Open panel function
+                function openPanel() {
+                    assetPanel.classList.add('active');
+                    panelBackdrop.classList.add('active');
+                    document.body.style.overflow = 'hidden';
 
-                    // Expand content
-                    assetContent.classList.remove('col-md-9');
-                    assetContent.classList.add('col-md-11');
+                    // Change icon to close
+                    const icon = panelToggle.querySelector('i');
+                    icon.className = 'ti ti-x';
+                    panelToggle.title = 'Close Asset Panel';
+                }
 
-                    sidebarVisible = false;
+                // Close panel function
+                function closePanel() {
+                    assetPanel.classList.remove('active');
+                    panelBackdrop.classList.remove('active');
+                    document.body.style.overflow = 'auto';
+
+                    // Change icon back to list
+                    const icon = panelToggle.querySelector('i');
+                    icon.className = 'ti ti-device-desktop';
+                    panelToggle.title = 'Asset Panel';
 
                     // Trigger resize event to make sure chart redraws correctly
                     if (crossAssetChart) {
@@ -194,47 +256,67 @@
                             crossAssetChart.render();
                         }, 300);
                     }
+                }
+
+                // Toggle panel
+                panelToggle.addEventListener('click', function() {
+                    if (assetPanel.classList.contains('active')) {
+                        closePanel();
+                    } else {
+                        openPanel();
+                    }
                 });
 
-                // Expand sidebar function
-                expandSidebarBtn.addEventListener('click', function() {
-                    // Expand sidebar
-                    assetSidebar.classList.remove('sidebar-collapsed');
-                    assetSidebar.classList.remove('col-md-1');
-                    assetSidebar.classList.add('col-md-3');
-                    collapsedToggle.classList.add('d-none');
+                // Close button
+                panelClose.addEventListener('click', closePanel);
 
-                    // Reduce content width
-                    assetContent.classList.remove('col-md-11');
-                    assetContent.classList.add('col-md-9');
+                // Close when clicking backdrop
+                panelBackdrop.addEventListener('click', closePanel);
 
-                    sidebarVisible = true;
+                // Close on ESC key
+                document.addEventListener('keydown', function(e) {
+                    if (e.key === 'Escape' && assetPanel.classList.contains('active')) {
+                        closePanel();
+                    }
+                });
 
-                    // Sync checkboxes with currentParameters after sidebar is expanded
-                    // to ensure UI is consistent with the data model
-                    setTimeout(function() {
-                        if (currentParameters && currentParameters.length > 0) {
-                            // First uncheck all checkboxes
-                            document.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
-                                checkbox.checked = false;
-                            });
+                // Swipe gesture for mobile
+                let startX = 0;
+                let currentX = 0;
+                let isSwipeStarted = false;
 
-                            // Then check only those that are in currentParameters
-                            currentParameters.forEach(paramId => {
-                                const checkbox = document.getElementById('param-' + paramId);
-                                if (checkbox) {
-                                    checkbox.checked = true;
-                                }
-                            });
-                        }
-                    }, 100);
+                assetPanel.addEventListener('touchstart', function(e) {
+                    startX = e.touches[0].clientX;
+                    isSwipeStarted = true;
+                }, {
+                    passive: true
+                });
 
-                    // Trigger resize event to make sure chart redraws correctly
+                assetPanel.addEventListener('touchmove', function(e) {
+                    if (!isSwipeStarted) return;
+
+                    currentX = e.touches[0].clientX;
+                    const diffX = currentX - startX;
+
+                    // If swiping right and moved more than 100px, close panel
+                    if (diffX > 100) {
+                        closePanel();
+                        isSwipeStarted = false;
+                    }
+                }, {
+                    passive: true
+                });
+
+                assetPanel.addEventListener('touchend', function() {
+                    isSwipeStarted = false;
+                }, {
+                    passive: true
+                });
+
+                // Handle window resize
+                window.addEventListener('resize', function() {
                     if (crossAssetChart) {
-                        setTimeout(function() {
-                            window.dispatchEvent(new Event('resize'));
-                            crossAssetChart.render();
-                        }, 300);
+                        crossAssetChart.render();
                     }
                 });
 

@@ -2,18 +2,23 @@
     @if ($assetId)
         <div class="card text-left">
             <div class="card-body text-left">
-                <div class="d-flex justify-content-between align-items-center mb-4">
-                    <h5 class="card-title mb-0">
-                        <i class="ti ti-alert-triangle me-2"></i>
-                        Current Alarms for {{ $asset->name ?? 'Selected Asset' }}
-                    </h5>
-                    <button wire:click="exportExcel" wire:loading.attr="disabled" class="btn btn-sm btn-success">
-                        <span wire:loading.class.remove="d-none" wire:target="exportExcel"
-                            class="spinner-border spinner-border-sm d-none me-1"></span>
-                        <i wire:loading.class="d-none" wire:target="exportExcel" class="ti ti-file-export me-1"></i>
-                        <span wire:loading.class="d-none" wire:target="exportExcel">Export to Excel</span>
-                        <span wire:loading wire:target="exportExcel">Generating...</span>
-                    </button>
+                <div class="row mb-4 align-items-center">
+                    <div class="col-12 col-md-8">
+                        <h5 class="card-title mb-2 mb-md-0">
+                            <i class="ti ti-alert-triangle me-2"></i>
+                            Current Alarms for {{ $asset->name ?? 'Selected Asset' }}
+                        </h5>
+                    </div>
+                    <div class="col-12 col-md-4 text-md-end mt-2 mt-md-0">
+                        <button wire:click="exportExcel" wire:loading.attr="disabled"
+                            class="btn btn-sm btn-success w-100 w-md-auto">
+                            <span wire:loading.class.remove="d-none" wire:target="exportExcel"
+                                class="spinner-border spinner-border-sm d-none me-1"></span>
+                            <i wire:loading.class="d-none" wire:target="exportExcel" class="ti ti-file-export me-1"></i>
+                            <span wire:loading.class="d-none" wire:target="exportExcel">Export to Excel</span>
+                            <span wire:loading wire:target="exportExcel">Generating...</span>
+                        </button>
+                    </div>
                 </div>
 
                 <!-- Search and Filter -->

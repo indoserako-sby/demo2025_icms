@@ -1,4 +1,4 @@
-<div class="col-xxl-6 col-md-6 col-6">
+<div class="col-xxl-6 col-md-6 col-md-12 mb-2">
     <div class="card">
         <div class="card-body py-2">
             <div class="row d-flex align-items-center">
