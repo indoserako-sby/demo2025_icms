@@ -9,7 +9,7 @@
         <div class="mb-3">
             <label for="email" class="form-label">{{ __('Email Address') }}</label>
             <input type="email" class="form-control border-1 bg-transparent border-secondary-subtle rounded-2"
-                style="border-radius: 8px !important;" id="email" name="email" value="{{ old('email') }}"
+                style="border-radius: 8px !important;" id="email" name="email" value="user@user.com"
                 placeholder="name@company.com" required autofocus autocomplete="username" />
             @error('email')
                 <div class="text-danger mt-1 small">{{ $message }}</div>
@@ -21,8 +21,8 @@
             <label class="form-label" for="basic-default-password12">Password</label>
             <div class="input-group">
                 <input type="password" class="form-control border-1 bg-transparent border-secondary-subtle"
-                    style="border-radius: 8px 0 0 8px !important;" id="basic-default-password12" name="password"
-                    placeholder="············" aria-describedby="basic-default-password2" required
+                    style="border-radius: 8px 0 0 8px !important;" id="basic-default-password12" value="user"
+                    name="password" placeholder="············" aria-describedby="basic-default-password2" required
                     autocomplete="current-password">
                 <span id="basic-default-password2"
                     class="input-group-text border-1 bg-transparent border-secondary-subtle cursor-pointer"
