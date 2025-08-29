@@ -16,11 +16,27 @@
     @stack('style')
     @include('layouts.style.style')
     @livewireStyles
+    <style>
+        .fixed-home-btn {
+            position: fixed;
+            bottom: 1rem;
+            right: 1rem;
+            z-index: 1000;
+            padding: 10px 15px;
+            border-radius: 5px;
+            box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2);
+        }
+    </style>
 
 
 </head>
 
 <body>
+    <!-- Fixed Home Button -->
+    <a href="{{ request()->getScheme() . '://' . request()->getHost() . '/demo2025' }}"
+        class="fixed-home-btn bg-primary text-white" title="Home">
+        <i class="fa fa-home mr-2"></i>Main page
+    </a>
     <!-- Layout wrapper -->
     <div class="layout-wrapper layout-navbar-full layout-horizontal layout-without-menu">
         <div class="layout-container">
