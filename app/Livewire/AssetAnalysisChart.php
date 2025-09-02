@@ -295,78 +295,71 @@ class AssetAnalysisChart extends Component
                     switch ($this->interval) {
                         case '3-minutes':
                             // Group by 3-minute intervals
-                            $logData = $logQuery->get()->groupBy(function ($date) {
-                                return Carbon::parse($date->created_at)->format('Y-m-d H:i');
-                                // This groups by minute, we'll further group by 3 minutes below
-                            })->map(function ($group) {
-                                $timestamp = Carbon::parse($group->first()->created_at);
-                                // Round to nearest 3-minute interval
-                                $minute = $timestamp->minute;
-                                $roundedMinute = floor($minute / 3) * 3;
-                                $timestamp->minute($roundedMinute)->second(0);
+                            $logData = $logQuery->get()
+                                ->groupBy(function ($item) {
+                                    $timestamp = Carbon::parse($item->created_at);
+                                    $roundedMinute = floor($timestamp->minute / 3) * 3;
+                                    $timestamp->minute($roundedMinute)->second(0);
+                                    return $timestamp->format('Y-m-d H:i');
+                                })
+                                ->map(function ($group, $roundedTimestamp) {
+                                    return [
+                                        'timestamp' => $roundedTimestamp,
+                                        'value' => $group->first()->value // atau sesuaikan dengan logikamu
+                                    ];
+                                })->values();
 
-                                return [
-                                    'timestamp' => $timestamp->format('Y-m-d H:i'),
-                                    'value' => $group->first()->value
-                                ];
-                            })->values();
                             break;
 
                         case '10-minutes':
                             // Group by 10-minute intervals
-                            $logData = $logQuery->get()->groupBy(function ($date) {
-                                return Carbon::parse($date->created_at)->format('Y-m-d H:i');
-                                // This groups by minute, we'll further group by 10 minutes below
-                            })->map(function ($group) {
-                                $timestamp = Carbon::parse($group->first()->created_at);
-                                // Round to nearest 10-minute interval
-                                $minute = $timestamp->minute;
-                                $roundedMinute = floor($minute / 10) * 10;
-                                $timestamp->minute($roundedMinute)->second(0);
-
-                                return [
-                                    'timestamp' => $timestamp->format('Y-m-d H:i'),
-                                    'value' => $group->first()->value
-                                ];
-                            })->values();
+                            $logData = $logQuery->get()
+                                ->groupBy(function ($item) {
+                                    $timestamp = Carbon::parse($item->created_at);
+                                    $roundedMinute = floor($timestamp->minute / 10) * 10;
+                                    $timestamp->minute($roundedMinute)->second(0);
+                                    return $timestamp->format('Y-m-d H:i');
+                                })
+                                ->map(function ($group, $roundedTimestamp) {
+                                    return [
+                                        'timestamp' => $roundedTimestamp,
+                                        'value' => $group->first()->value // atau sesuaikan dengan logikamu
+                                    ];
+                                })->values();
                             break;
 
                         case '15-minutes':
                             // Group by 15-minute intervals
-                            $logData = $logQuery->get()->groupBy(function ($date) {
-                                return Carbon::parse($date->created_at)->format('Y-m-d H:i');
-                                // This groups by minute, we'll further group by 15 minutes below
-                            })->map(function ($group) {
-                                $timestamp = Carbon::parse($group->first()->created_at);
-                                // Round to nearest 15-minute interval
-                                $minute = $timestamp->minute;
-                                $roundedMinute = floor($minute / 15) * 15;
-                                $timestamp->minute($roundedMinute)->second(0);
-
-                                return [
-                                    'timestamp' => $timestamp->format('Y-m-d H:i'),
-                                    'value' => $group->first()->value
-                                ];
-                            })->values();
+                            $logData = $logQuery->get()
+                                ->groupBy(function ($item) {
+                                    $timestamp = Carbon::parse($item->created_at);
+                                    $roundedMinute = floor($timestamp->minute / 15) * 15;
+                                    $timestamp->minute($roundedMinute)->second(0);
+                                    return $timestamp->format('Y-m-d H:i');
+                                })
+                                ->map(function ($group, $roundedTimestamp) {
+                                    return [
+                                        'timestamp' => $roundedTimestamp,
+                                        'value' => $group->first()->value // atau sesuaikan dengan logikamu
+                                    ];
+                                })->values();
                             break;
 
                         case '30-minutes':
                             // Group by 30-minute intervals
-                            $logData = $logQuery->get()->groupBy(function ($date) {
-                                return Carbon::parse($date->created_at)->format('Y-m-d H:i');
-                                // This groups by minute, we'll further group by 30 minutes below
-                            })->map(function ($group) {
-                                $timestamp = Carbon::parse($group->first()->created_at);
-                                // Round to nearest 30-minute interval
-                                $minute = $timestamp->minute;
-                                $roundedMinute = floor($minute / 30) * 30;
-                                $timestamp->minute($roundedMinute)->second(0);
-
-                                return [
-                                    'timestamp' => $timestamp->format('Y-m-d H:i:s'),
-                                    'value' => $group->first()->value
-                                ];
-                            })->values();
+                            $logData = $logQuery->get()
+                                ->groupBy(function ($item) {
+                                    $timestamp = Carbon::parse($item->created_at);
+                                    $roundedMinute = floor($timestamp->minute / 30) * 30;
+                                    $timestamp->minute($roundedMinute)->second(0);
+                                    return $timestamp->format('Y-m-d H:i');
+                                })
+                                ->map(function ($group, $roundedTimestamp) {
+                                    return [
+                                        'timestamp' => $roundedTimestamp,
+                                        'value' => $group->first()->value // atau sesuaikan dengan logikamu
+                                    ];
+                                })->values();
                             break;
 
                         case 'hour':

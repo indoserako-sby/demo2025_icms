@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
-    <title>{{ config('app.name', 'IMS - Indoserako Monitoring System') }}</title>
+    <title>{{ config('app.name', 'ICMS - Industrial Condition Monitoring System') }}</title>
 
 
 
@@ -193,10 +193,10 @@
                     <div class="col-md-6 system-info-column">
                         <div class="system-logo">
                             <img src="{{ asset('assets/is.png') }}" alt="Bogasari" width="50" height="35">
-                            <h1 class="mb-0 fs-3 text-white fw-bold">IMS</h1>
+                            <h1 class="mb-0 fs-3 text-white fw-bold">ICMS</h1>
                         </div>
 
-                        <h2 class="system-heading">Indoserako Monitoring System</h2>
+                        <h2 class="system-heading">Industrial Condition Monitoring System</h2>
                         <p class="mb-4 text-light-emphasis">Advanced industrial monitoring & control system to optimize
                             systems in your facility</p>
 
@@ -235,7 +235,7 @@
                     <div class="col-md-6 login-column">
                         <div class="login-header">
                             <i class="ti ti-building-factory industrial-icon d-block mx-auto"></i>
-                            <h2>Welcome to IMS</h2>
+                            <h2>Welcome to ICMS</h2>
                             <p>Log in to access your control panel</p>
                         </div>
                         <div class="login-form-container">
