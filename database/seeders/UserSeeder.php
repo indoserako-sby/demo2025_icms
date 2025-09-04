@@ -20,12 +20,12 @@ class UserSeeder extends Seeder
             ]
         );
 
-        // Update or create regular user
+        // Update or create regular user with custom password
         User::updateOrCreate(
             ['email' => 'user@user.com'],
             [
                 'name' => 'Regular User',
-                'password' => Hash::make('password'),
+                'password' => Hash::make('user'),
                 'role' => 'user'
             ]
         );

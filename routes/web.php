@@ -21,16 +21,8 @@ use App\Models\ParameterSensor;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
-    if (auth()->check()) {
-        if (auth()->user()->hasRole('admin')) {
-            return redirect()->route('admin.dashboard');
-        } else {
-            return redirect()->route('user.dashboard');
-        }
-    } else {
-        return redirect()->route('login');
-    }
-});
+    return redirect()->route('user.dashboard');
+})->middleware('auto.login');
 
 // Data routes for datatables
 Route::get('area/data', [AreaController::class, 'data'])->name('area.data');
