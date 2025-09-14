@@ -33,8 +33,7 @@
 
 <body>
     <!-- Fixed Home Button -->
-    <a href="{{ request()->getScheme() . '://' . request()->getHost() . '/demo2025' }}"
-        class="fixed-home-btn bg-primary text-white" title="Home">
+    <a href="https://netro.id/demo2025" class="fixed-home-btn bg-primary text-white" title="Home">
         <i class="fa fa-home mr-2"></i>Main page
     </a>
     <!-- Layout wrapper -->
